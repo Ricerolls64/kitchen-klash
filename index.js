@@ -1,11 +1,11 @@
 const log = console.log;
 let player, tables, kts, aps, dts;
 
-let speed = 3;
+let speed = 2.5;
 let keyHeldCount = 0;
-let speedCap = 3;
+let speedCap = 1.5;
 let spdIncr = 0.3;
-let slushSpd = 1.5;
+let slushSpd = 1;
 let dtSize = 48;
 let dtOffset = dtSize * 1.05;
 let dtAmount = 8;
@@ -159,18 +159,18 @@ function draw() {
 	let keysDown = 0;
 
 	for (let k of ['w', 'a', 's', 'd']) {
-		if (keyIsDown(k)) keysDown++;
+		if (kb.pressing(k)) keysDown++;
 	}
 	if (keysDown > 2) keysDown = 2;
 
-	if (keyIsDown('w')) {
+	if (kb.pressing('w')) {
 		player.vel.y = (-speed - keyHeldCount) / keysDown;
 		if (keysDown == 2) player.vel.y += -slushSpd;
 		keyHeldCount += spdIncr;
 		if (keyHeldCount > speedCap) {
 			keyHeldCount = speedCap;
 		}
-	} else if (keyIsDown('s')) {
+	} else if (kb.pressing('s')) {
 		player.vel.y = (speed + keyHeldCount) / keysDown;
 		if (keysDown == 2) player.vel.y += slushSpd;
 		keyHeldCount += spdIncr;
@@ -181,14 +181,14 @@ function draw() {
 		player.vel.y = 0;
 	}
 
-	if (keyIsDown('a')) {
+	if (kb.pressing('a')) {
 		player.vel.x = (-speed - keyHeldCount) / keysDown;
 		if (keysDown == 2) player.vel.y += -slushSpd;
 		keyHeldCount += spdIncr;
 		if (keyHeldCount > speedCap) {
 			keyHeldCount = speedCap;
 		}
-	} else if (keyIsDown('d')) {
+	} else if (kb.pressing('d')) {
 		player.vel.x = (speed + keyHeldCount) / keysDown;
 		if (keysDown == 2) player.vel.y += slushSpd;
 		keyHeldCount += spdIncr;
