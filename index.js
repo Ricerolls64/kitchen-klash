@@ -19,9 +19,24 @@ let recipes = {
 	i2: [['i0', 'i1'], 'a0']
 };
 
+// keys are the item name, values are the cooking time
+let cooking = {};
+
 function oven() {
-	if (dish == ['i0', 'i1']) {
-		return 'i2';
+	for (let item in cooking) {
+		if (cooking[item] < 0) {
+			delete cooking[item];
+			return item;
+		}
+		// TODO if it cooked for too long give them burnt item
+	}
+	if (dish.includes('i0') && dish.includes('i1')) {
+		// await delay(5000)
+		let i = dish.indexOf('i0');
+		dish.splice(i, 1);
+		i = dish.indexOf('i1');
+		dish.splice(i, 1);
+		cooking.i2 = 200;
 	}
 }
 
@@ -64,8 +79,8 @@ function setup() {
 	new kts.Sprite(88, 88, 57, 35);
 	new tableColliders.Sprite(88, 88, 44, 22);
 
-	new aps.Sprite(20, 140, 30, 80);
-	new tableColliders.Sprite(20, 140, 20, 70);
+	new aps.Sprite(10, 140, 35, 40);
+	new tableColliders.Sprite(10, 140, 20, 70);
 
 	dts = new tables.Group();
 
@@ -86,16 +101,20 @@ function setup() {
 
 	for (let i = 0; i < kts.length; i++) {
 		player.overlap(kts[i], () => {
-			if (dish.includes(i) == false) {
+			if (dish.includes('i' + i) == false) {
 				dish.push('i' + i);
 				log(dish);
 			}
 		});
 	}
 
-	for (let i = 0; i < aps.length; i++) {
-		player.overlap(aps[i], () => {});
-	}
+	player.overlap(aps[0], () => {
+		let result = oven();
+		if (result != undefined) {
+			dish.push(result);
+			log(dish);
+		}
+	});
 
 	player.overlap(tables);
 
@@ -147,14 +166,16 @@ function draw() {
 	background(128);
 
 	textAlign(LEFT);
-	text('Score: ' + score, 32, 200);
-	text('Table: ' + tableNum, 80, 200);
-	text('Recipie: ' + recipe, 130, 200);
-	text('Dish: ' + dish, 200, 200);
+	text('Score: ' + score, 10, 20);
+	text('Table: ' + tableNum, 10, 40);
+	text('Recipie: ' + recipe, 10, 60);
 
 	// log(frameCount); // in game frames drawn
 	// log(Date.now()); // real world time
-	for (let i = 0; i < dish.length; i++) {}
+	for (let item in cooking) {
+		cooking[item]--;
+		log(item, cooking[item]);
+	}
 
 	let keysDown = 0;
 
