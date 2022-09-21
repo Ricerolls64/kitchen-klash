@@ -11,11 +11,13 @@ let dtSize = 48;
 let dtOffset = dtSize * 1.05;
 let dtAmount = 8;
 
+let ingredients;
 let dish = [];
 let inventory;
 let score = 0;
 let tableNum, recipe;
 let spriteBoxOffset = 10;
+let ovenAvailable = true;
 
 let bell;
 
@@ -30,6 +32,7 @@ let cooking = {};
 function oven() {
 	for (let item in cooking) {
 		if (cooking[item] < 0) {
+			ovenAvailable = true;
 			if (cooking[item] < -200) {
 				delete cooking[item];
 				return 'burnt ' + item;
@@ -38,15 +41,36 @@ function oven() {
 			return item;
 		}
 	}
+
+	if (ovenAvailable == false) return;
+
 	if (dish.includes('dough') && dish.includes('chocolate')) {
+		ovenAvailable = false;
 		// await delay(5000)
-		let i = dish.indexOf('dough');
-		dish.splice(i, 1);
-		inventory[i].remove();
-		i = dish.indexOf('chocolate');
-		dish.splice(i, 1);
-		inventory[i].remove();
+		removeItemFromInventory('dough');
+		removeItemFromInventory('chocolate');
 		cooking.cookie = 200;
+	}
+}
+
+function removeItemFromInventory(item) {
+	let i = dish.indexOf(item);
+	dish.splice(i, 1);
+	inventory[i].remove();
+	repoInventory();
+}
+
+function repoInventory() {
+	for (let i = 0; i < inventory.length; i++) {
+		inventory[i].x = i * 20 + spriteBoxOffset;
+	}
+}
+
+function serveToTable(i) {
+	if (i == tableNum) {
+		removeItemFromInventory('cookie');
+		score++;
+		nextDish();
 	}
 }
 
@@ -125,52 +149,26 @@ function setup() {
 	burntFood.tileSize = 1;
 
 	inventory = new Group();
-	let ingredients = ['dough', 'chocolate', 'cookie'];
-	for (let i = 0; i < kts.length; i++) {
-		player.overlap(kts[i], () => {
-			if (dish.includes(ingredients[i]) == false) {
-				dish.push(ingredients[i]);
-				log(dish);
-				inventory.push(new food.Sprite(ingredients[i], inventory.length * 20 + spriteBoxOffset, 191));
-			}
-		});
-	}
+	ingredients = ['dough', 'chocolate', 'cookie'];
 
 	// oven
-	player.overlap(aps[0], () => {
-		let foodName = oven();
-
-		if (foodName != undefined) {
-			let group;
-			if (!foodName.includes('burnt')) {
-				group = food;
-			} else {
-				group = burntFood;
-				foodName = foodName.slice(6);
-				log(foodName);
-			}
-			let res = new group.Sprite(foodName, inventory.length * 20 + spriteBoxOffset, 192);
-
-			dish.push(foodName);
-			inventory.push(res);
-
-			log(dish);
-		}
-	});
+	player.overlap(aps[0]);
 
 	player.overlap(tables);
 
-	player.overlap(garbage, () => {
-		dish = [];
-		log(dish);
-		inventory.remove();
-	});
+	player.overlap(garbage);
 
 	for (let i = 0; i < kts.length; i++) {
 		new food.Sprite(ingredients[i], kts[i].x, kts[i].y);
 	}
 
 	nextDish();
+}
+
+function getIngredient(i) {
+	dish.push(ingredients[i]);
+	log(dish);
+	inventory.push(new food.Sprite(ingredients[i], inventory.length * 20 + spriteBoxOffset, 191));
 }
 
 function nextDish() {
@@ -182,25 +180,6 @@ function nextDish() {
 
 	log('table: ' + tableNum);
 	log('recipe: ' + recipe);
-
-	player.overlap(table, () => {
-		if (dish.length == 0 || dish.length != recipe.length) return;
-
-		dish.sort();
-		log(dish);
-
-		for (let i = 0; i < dish.length; i++) {
-			if (dish[i] != recipe[i]) {
-				log('wrong recipe');
-				return;
-			}
-		}
-
-		log('done!');
-		dish = [];
-		score++;
-		nextDish();
-	});
 }
 
 function draw() {
@@ -210,7 +189,6 @@ function draw() {
 	textAlign(LEFT);
 	text('Score: ' + score, 10, 20);
 	text('Table: ' + tableNum, 10, 40);
-	text('Recipie: ' + recipe, 10, 60);
 
 	fill(0, 0, 0, 0);
 	for (let i = 0; i < inventory.length; i++) {
@@ -268,6 +246,51 @@ function draw() {
 		}
 	} else {
 		player.vel.x = 0;
+	}
+
+	if (kb.pressed(' ')) {
+		for (let i = 0; i < kts.length; i++) {
+			let kt = kts[i];
+
+			// player.touching(kt)
+			if (player.touching['s' + kt.idNum]) {
+				getIngredient(i);
+			}
+		}
+		for (let i = 0; i < dts.length; i++) {
+			let dt = dts[i];
+
+			// player.touching(dt)
+			if (player.touching['s' + dt.idNum]) {
+				serveToTable(i);
+			}
+		}
+		// player.touching(aps[0])
+		if (player.touching['s' + aps[0].idNum]) {
+			let foodName = oven();
+
+			if (foodName == undefined) return;
+			let group;
+			if (!foodName.includes('burnt')) {
+				group = food;
+			} else {
+				group = burntFood;
+				foodName = foodName.slice(6);
+				log(foodName);
+			}
+			let res = new group.Sprite(foodName, inventory.length * 20 + spriteBoxOffset, 192);
+
+			dish.push(foodName);
+			inventory.push(res);
+
+			log(dish);
+		}
+		// player.touching(garbage)
+		if (player.touching['s' + garbage.idNum]) {
+			dish = [];
+			log(dish);
+			inventory.remove();
+		}
 	}
 
 	// log(player.vel.x, player.vel.y);
