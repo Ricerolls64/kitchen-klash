@@ -1,14 +1,13 @@
 {
 	"dependencies": {
 		"p5": "^1.4.2",
-		"p5.play": "^3.0.38",
+		"p5.play": "^3.5.3",
 		"planck": "^1.0.0-alpha.4"
 	},
 	"name": "kitchen-klash",
 	"description": "Done:\r refine movement\r test going to different tables",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"main": "index.js",
-	"devDependencies": {},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"v": "npm version patch --force",

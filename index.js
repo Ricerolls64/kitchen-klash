@@ -23,7 +23,13 @@ let bell;
 
 // i3 is cookie
 let recipes = {
-	cookie: [['dough', 'chocolate'], 'oven']
+	bread: [['dough'], 'oven'],
+	cookie: [['dough', 'chocolate'], 'oven'],
+	applePie: [['apple', 'dough'], 'oven'],
+	cheeseCake: [['cheese', 'dough'], 'oven'],
+	roastedHam: [['pig'], 'oven'],
+	grilledSalmon: [['salmon'], 'stove'],
+	boiledShrimp: [['shrimp'], 'stove']
 };
 
 // keys are the item name, values are the cooking time
@@ -81,7 +87,17 @@ function preload() {
 	let atlas = {
 		cookie: [0, 0],
 		chocolate: [1, 0],
-		dough: [5, 0]
+		dough: [5, 0],
+		apple: [4, 1],
+		applePie: [4, 4],
+		cheese: [0, 3],
+		cheeseCake: [5, 4],
+		pig: [1, 1],
+		roastedHam: [1, 5],
+		salmon: [7, 2],
+		grilledSalmon: [2, 5],
+		shrimp: [2, 7],
+		boiledShrimp: [7, 7]
 	};
 	food.addAnis(atlas);
 	food.collider = 'none';
@@ -120,6 +136,9 @@ function setup() {
 	new kts.Sprite(88, 88, 57, 35);
 	new kts.Sprite(160, 28, 50, 40);
 	new kts.Sprite(150, 81, 40, 42);
+	new kts.Sprite(140, 130, 40, 30);
+	new kts.Sprite(80, 140, 30, 40);
+	new kts.Sprite(180, 140, 20, 40);
 
 	for (let kt of kts) {
 		new tableColliders.Sprite(kt.x, kt.y, kt.w - 12, kt.h - 12);
@@ -140,7 +159,8 @@ function setup() {
 		y = firstY + floor(i / 2) * dtOffset;
 
 		new dts.Sprite(x, y, dtSize);
-		new tableColliders.Sprite(x, y, dtSize * 0.6);
+		let dtc = new tableColliders.Sprite(x, y, dtSize * 0.6);
+		dtc.text = i;
 	}
 
 	player = new Sprite(22, 22, 16);
@@ -149,7 +169,7 @@ function setup() {
 	burntFood.tileSize = 1;
 
 	inventory = new Group();
-	ingredients = ['dough', 'chocolate', 'cookie'];
+	ingredients = ['dough', 'chocolate', 'apple', 'cheese', 'pig', 'salmon', 'shrimp'];
 
 	// oven
 	player.overlap(aps[0]);
@@ -173,10 +193,10 @@ function getIngredient(i) {
 
 function nextDish() {
 	tableNum = round(random(0, dtAmount));
-	let recipeNum = round(random(0, 2));
+	let recipeNum = round(random(0, 6));
 
 	let table = dts[tableNum];
-	recipe = recipes[recipeNum];
+	recipe = recipes[Object.keys(recipes)[recipeNum]];
 
 	log('table: ' + tableNum);
 	log('recipe: ' + recipe);
@@ -248,25 +268,22 @@ function draw() {
 		player.vel.x = 0;
 	}
 
-	if (kb.pressed(' ')) {
+	if (kb.presses(' ')) {
 		for (let i = 0; i < kts.length; i++) {
 			let kt = kts[i];
 
-			// player.touching(kt)
-			if (player.touching['s' + kt.idNum]) {
+			if (player.overlapping(kt)) {
 				getIngredient(i);
 			}
 		}
 		for (let i = 0; i < dts.length; i++) {
 			let dt = dts[i];
 
-			// player.touching(dt)
-			if (player.touching['s' + dt.idNum]) {
+			if (player.overlapping(dt)) {
 				serveToTable(i);
 			}
 		}
-		// player.touching(aps[0])
-		if (player.touching['s' + aps[0].idNum]) {
+		if (player.overlapping(aps[0])) {
 			let foodName = oven();
 
 			if (foodName == undefined) return;
@@ -285,8 +302,7 @@ function draw() {
 
 			log(dish);
 		}
-		// player.touching(garbage)
-		if (player.touching['s' + garbage.idNum]) {
+		if (player.overlapping(garbage)) {
 			dish = [];
 			log(dish);
 			inventory.remove();
